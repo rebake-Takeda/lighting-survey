@@ -83,6 +83,7 @@ html, body { height: 100%; font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic P
 .dl-btn { background: var(--blue); color: var(--white); border: none; border-radius: var(--radius); padding: 14px; font-size: 15px; font-weight: 700; width: 100%; cursor: pointer; font-family: inherit; }
 .dl-btn:active { background: var(--blue-dark); }
 .form-bottom-pad { padding: 0 16px 48px; }
+.edit-btn { background: none; border: 1px solid var(--blue); color: var(--blue); border-radius: 6px; font-size: 12px; padding: 4px 10px; cursor: pointer; font-family: inherit; }
 
 /* Form */
 .form-section { margin: 14px 16px 0; }
@@ -91,6 +92,8 @@ html, body { height: 100%; font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic P
 .lc-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--blue); color: var(--white); }
 .lc-head-title { font-size: 14px; font-weight: 700; }
 .lc-del { background: rgba(255,255,255,0.25); border: none; color: var(--white); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 6px; font-family: inherit; }
+.lc-field { padding: 12px 14px; border-top: 1px solid var(--border); }
+.lc-field-label { font-size: 12px; font-weight: 700; color: var(--gray-4); margin-bottom: 8px; }
 .lc-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .lc-table { border-collapse: collapse; width: max-content; min-width: 100%; }
 .lc-table th { background: var(--gray-1); color: var(--gray-4); font-size: 11px; font-weight: 700; padding: 8px 10px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); white-space: nowrap; text-align: center; }
@@ -181,16 +184,25 @@ html, body { height: 100%; font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic P
     <h1 id="f-title" style="font-size:15px;"></h1>
   </div>
   <div class="scroll-body">
+    <!-- 部屋情報 -->
     <div class="form-section">
-      <div class="section-label">照明情報を入力してください</div>
+      <div class="section-label">部屋情報</div>
+      <div class="form-card">
+        <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
+          <div style="font-size:12px;font-weight:700;color:var(--gray-4);margin-bottom:8px">階数</div>
+          <div class="chips" id="floor-chips"></div>
+        </div>
+        <div style="padding:12px 14px">
+          <div style="font-size:12px;font-weight:700;color:var(--gray-4);margin-bottom:8px">室区分</div>
+          <input class="txt-inp" type="text" id="inp-room" placeholder="例：廊下、事務室">
+        </div>
+      </div>
+    </div>
+    <!-- 照明リスト -->
+    <div class="form-section">
+      <div class="section-label">照明一覧</div>
       <div id="lc-list"></div>
       <button class="add-lc-btn" onclick="addLC()">＋ 照明を追加</button>
-    </div>
-    <div class="form-section">
-      <div class="section-label">備考</div>
-      <div class="form-card">
-        <textarea class="note-input" id="inp-note" placeholder="特記事項・メモ"></textarea>
-      </div>
     </div>
     <div class="form-bottom-pad" style="padding-top:0">
       <div style="padding: 0 16px;">
@@ -205,8 +217,8 @@ html, body { height: 100%; font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic P
 const FACILITIES = [{"id":1,"name":"燕警察署","addr":"燕市吉田西太田１９４６－４","total":1000,"date":"2026-04-09","time":"13:00～15:00"},{"id":2,"name":"吉田交番","addr":"燕市吉田春日町１－１","total":29,"date":"2026-04-09","time":"15:15～16:15"},{"id":3,"name":"燕駅前交番","addr":"燕市本町２－１－２２","total":24,"date":"2026-04-09","time":"16:30～17:00"},{"id":4,"name":"新潟北警察署","addr":"新潟市北区木崎６５７－１","total":368,"date":"2026-04-20","time":"9:00～11:00"},{"id":5,"name":"新発田警察署","addr":"新発田市中央町４－２－４","total":519,"date":"2026-04-20","time":"12:30～14:30"},{"id":6,"name":"村上警察署","addr":"村上市南町２－３－１８","total":551,"date":"2026-04-20","time":"15:30～17:30"},{"id":7,"name":"大形交番","addr":"新潟市東区大形本町５－６－14","total":12,"date":"2026-04-21","time":"9:00～9:30"},{"id":8,"name":"河渡交番","addr":"新潟市東区河渡本町２－１－２","total":11,"date":"2026-04-21","time":"10:15～11:00"},{"id":9,"name":"中野山交番","addr":"新潟市東区東中島１－１－１","total":13,"date":"2026-04-21","time":"11:30～12:00"},{"id":10,"name":"中山交番","addr":"新潟市東区中山６－20－21","total":24,"date":"2026-04-21","time":"13:45～14:30"},{"id":11,"name":"航空隊舎","addr":"新潟市東区松浜町 新潟空港内","total":177,"date":"2026-04-21","time":"15:30～17:00"},{"id":12,"name":"江南警察署","addr":"新潟市江南区鵜ノ子5-2-1","total":455,"date":"2026-04-22","time":"9:00～11:00"},{"id":13,"name":"秋葉警察署","addr":"新潟市秋葉区新津4479-1","total":366,"date":"2026-04-22","time":"12:30～14:30"},{"id":14,"name":"加茂警察署","addr":"加茂市陣ヶ峰６番26号","total":210,"date":"2026-04-22","time":"15:00～17:00"},{"id":15,"name":"新潟南警察署","addr":"新潟市南区能登２－１－２５","total":271,"date":"2026-04-23","time":"9:00～11:00"},{"id":16,"name":"新潟西警察署","addr":"新潟市西区小新4083番地1","total":414,"date":"2026-04-23","time":"12:30～14:30"},{"id":17,"name":"西蒲警察署","addr":"新潟市西蒲区赤鏥１０７１","total":555,"date":"2026-04-23","time":"15:00～17:00"},{"id":18,"name":"豊栄駅前交番","addr":"新潟市北区白新町１－１－２６","total":22,"date":"2026-04-24","time":"9:00～9:30"},{"id":19,"name":"早通駅前交番","addr":"新潟市北区早通南１－５－１６","total":26,"date":"2026-04-24","time":"9:45～10:30"},{"id":20,"name":"笹口交番","addr":"新潟市中央区笹口2-1-22","total":19,"date":"2026-04-24","time":"11:00～11:30"},{"id":21,"name":"寺尾交番","addr":"新潟市西区寺尾東3丁目15番23号","total":19,"date":"2026-04-24","time":"12:30～13:00"},{"id":22,"name":"西小針交番","addr":"新潟市西区小針が丘2番41号","total":15,"date":"2026-04-24","time":"13:15～14:00"},{"id":23,"name":"小出警察署","addr":"魚沼市井口新田243番地1","total":245,"date":"2026-05-13","time":"9:00～11:00"},{"id":24,"name":"小千谷警察署","addr":"小千谷市城内３－１－５","total":250,"date":"2026-05-13","time":"12:30～14:30"},{"id":25,"name":"長岡警察署","addr":"長岡市水道町３－５－６０","total":451,"date":"2026-05-13","time":"15:00～17:00"},{"id":26,"name":"上越警察署","addr":"上越市藤野新田1172","total":1133,"date":"2026-05-14","time":"9:00～12:00"},{"id":27,"name":"糸魚川警察署","addr":"糸魚川市寺島２丁目３４４番１","total":384,"date":"2026-05-14","time":"14:00～16:00"},{"id":28,"name":"糸魚川駅前交番","addr":"糸魚川市大町１丁目１３９番２","total":14,"date":"2026-05-14","time":"16:15～16:45"},{"id":29,"name":"梶屋敷交番","addr":"糸魚川市大字田伏字古川２５３番１９","total":10,"date":"2026-05-14","time":"17:00～17:45"},{"id":30,"name":"柏崎警察署","addr":"柏崎市日吉町５－１０","total":292,"date":"2026-05-15","time":"9:00～11:00"},{"id":31,"name":"与板警察署","addr":"長岡市与板町与板乙５８８１－３","total":342,"date":"2026-05-15","time":"12:30～14:30"},{"id":32,"name":"見附警察署","addr":"見附市昭和町２－２－１","total":286,"date":"2026-05-15","time":"15:00～17:00"},{"id":33,"name":"津川警察署","addr":"東蒲原郡阿賀町津川306-1","total":303,"date":"2026-05-18","time":"9:00～11:00"},{"id":34,"name":"田上交番","addr":"南蒲原郡田上町大字原ヶ崎新田1352","total":50,"date":"2026-05-18","time":"12:30～14:00"},{"id":35,"name":"三条警察署","addr":"三条市旭町2-12-13","total":510,"date":"2026-05-18","time":"14:30～16:30"},{"id":36,"name":"五ノ町交番","addr":"三条市本町６－２－２６","total":35,"date":"2026-05-18","time":"16:45～17:45"},{"id":37,"name":"塩沢交番","addr":"南魚沼市塩沢１５６６－２１","total":13,"date":"2026-05-19","time":"9:00～10:00"},{"id":38,"name":"津南交番","addr":"中魚沼郡津南町大字下船渡丁２１４７番地４","total":29,"date":"2026-05-19","time":"11:00～12:00"},{"id":39,"name":"松代交番","addr":"十日町市松代３９１４番地５","total":35,"date":"2026-05-19","time":"13:30～14:30"},{"id":40,"name":"十日町駅前交番","addr":"十日町市旭町２６１番４３","total":31,"date":"2026-05-19","time":"15:00～16:00"},{"id":41,"name":"小国交番","addr":"長岡市小国町相野原３０４－１","total":21,"date":"2026-05-19","time":"16:45～17:45"},{"id":42,"name":"川崎交番","addr":"長岡市川崎５－２４３５－１","total":24,"date":"2026-05-20","time":"9:00～10:00"},{"id":43,"name":"悠久町交番","addr":"長岡市悠久町３－９３４","total":24,"date":"2026-05-20","time":"10:15～11:15"},{"id":44,"name":"新町交番","addr":"長岡市西新町２－８０５－１１","total":30,"date":"2026-05-20","time":"11:30～12:30"},{"id":45,"name":"下柳交番","addr":"長岡市荻野１－７－８","total":27,"date":"2026-05-20","time":"13:45～14:45"},{"id":46,"name":"越路交番","addr":"長岡市浦７１５－１３","total":28,"date":"2026-05-20","time":"15:00～16:00"},{"id":47,"name":"川口交番","addr":"長岡市東川口６２４－１","total":21,"date":"2026-05-20","time":"16:30～17:30"},{"id":48,"name":"巻駅前交番","addr":"新潟市西蒲区巻甲4908-6","total":25,"date":"2026-05-25","time":"13:00～13:30"},{"id":49,"name":"西川交番","addr":"新潟市西蒲区曽根字大縄場7-6","total":24,"date":"2026-05-25","time":"13:45～14:15"},{"id":50,"name":"内野駅前交番","addr":"新潟市西区内野町3988番地2","total":12,"date":"2026-05-25","time":"14:30～15:00"},{"id":51,"name":"黒崎交番","addr":"新潟市西区大野町3416番1","total":22,"date":"2026-05-25","time":"15:15～15:45"},{"id":52,"name":"小須戸交番","addr":"新潟市秋葉区新保113-1","total":30,"date":"2026-05-25","time":"16:15～16:45"},{"id":53,"name":"新津駅前交番","addr":"新潟市秋葉区新津本町1-2-45","total":23,"date":"2026-05-25","time":"17:15～17:45"},{"id":54,"name":"新潟中央警察署（警察本部分庁舎）","addr":"新潟市中央区寄居町３５０番地","total":987,"date":"2026-05-26","time":"9:00～11:00"},{"id":55,"name":"小新交番","addr":"新潟市西区小新4丁目9番25号","total":34,"date":"2026-05-26","time":"11:30～12:00"},{"id":56,"name":"曽野木交番","addr":"新潟市江南区曽野木1-29-16","total":42,"date":"2026-05-26","time":"12:15～12:45"},{"id":57,"name":"新潟警察署（新潟中央警察署）","addr":"新潟市中央区上所1-2-1","total":716,"date":"2026-05-26","time":"14:30～16:30"},{"id":58,"name":"村上駅前交番","addr":"村上市田端町９－３１","total":15,"date":"2026-05-27","time":"9:00～10:00"},{"id":59,"name":"下関交番","addr":"岩船郡関川村大字上関１３０４","total":28,"date":"2026-05-27","time":"10:30～11:30"},{"id":60,"name":"新発田駅前交番","addr":"新発田市諏訪町１－１－１２","total":41,"date":"2026-05-27","time":"13:00～14:30"},{"id":61,"name":"聖籠交番","addr":"聖籠町諏訪山１６７３－５","total":22,"date":"2026-05-27","time":"15:00～16:00"},{"id":62,"name":"東港交番","addr":"北蒲原郡聖籠町東港４－７９９","total":36,"date":"2026-05-27","time":"16:15～17:45"},{"id":63,"name":"安田交番","addr":"阿賀野市保田３７２６－８","total":34,"date":"2026-05-28","time":"9:00～10:30"},{"id":64,"name":"村松交番","addr":"五泉市村松乙６４６－３","total":18,"date":"2026-05-28","time":"11:00～12:00"},{"id":65,"name":"下田交番","addr":"三条市荻堀１３１６","total":11,"date":"2026-05-28","time":"13:15～14:00"},{"id":66,"name":"三条駅前交番","addr":"三条市南新保１５－１０","total":29,"date":"2026-05-28","time":"14:30～16:00"},{"id":67,"name":"神明町交番","addr":"三条市神明町１－１３","total":13,"date":"2026-05-28","time":"16:15～16:45"},{"id":68,"name":"中之島交番","addr":"長岡市中之島５６５－１０６","total":25,"date":"2026-05-29","time":"9:00～10:00"},{"id":69,"name":"今町交番","addr":"見附市今町１丁目２０－１","total":34,"date":"2026-05-29","time":"10:15～11:30"},{"id":70,"name":"千手交番","addr":"長岡市西千手２－６－１０","total":23,"date":"2026-05-29","time":"12:30～13:30"},{"id":71,"name":"四郎丸交番","addr":"長岡市四郎丸２－１８７","total":31,"date":"2026-05-29","time":"13:45～15:00"},{"id":72,"name":"有明台交番","addr":"新潟市中央区有明大橋町３－14","total":21,"date":"2026-06-01","time":"11:00～12:00"},{"id":73,"name":"弁天橋交番","addr":"新潟市中央区弁天橋通1-4-27","total":14,"date":"2026-06-01","time":"13:30～14:30"},{"id":74,"name":"柾谷小路警備派出所","addr":"新潟市中央区西堀通６番町866","total":16,"date":"2026-06-01","time":"15:00～16:00"},{"id":75,"name":"春日山交番","addr":"上越市新光町1-7-4","total":37,"date":"2026-06-02","time":"9:00～10:30"},{"id":76,"name":"三ツ屋交番","addr":"上越市安江1-3-28","total":29,"date":"2026-06-02","time":"11:00～12:30"},{"id":77,"name":"下町交番","addr":"妙高市下町８－２８","total":21,"date":"2026-06-02","time":"13:30～14:30"},{"id":78,"name":"妙高高原交番","addr":"妙高市大字毛祝坂５８－２","total":43,"date":"2026-06-02","time":"15:30～17:00"},{"id":79,"name":"能生交番","addr":"糸魚川市栄２８番","total":16,"date":"2026-06-03","time":"9:00～10:00"},{"id":80,"name":"板倉交番","addr":"上越市板倉区針940-4","total":41,"date":"2026-06-03","time":"11:00～12:30"},{"id":81,"name":"高田交番","addr":"上越市西城町3-7-5","total":35,"date":"2026-06-03","time":"13:30～15:00"},{"id":82,"name":"高田駅前交番","addr":"上越市仲町4-1-1","total":27,"date":"2026-06-03","time":"15:15～16:45"},{"id":83,"name":"直江津駅交番","addr":"上越市東町1-1","total":25,"date":"","time":"9:00～10:30"},{"id":84,"name":"田尻交番","addr":"柏崎市大字上田尻７９６－２","total":39,"date":"","time":"11:15～13:00"},{"id":85,"name":"平成大橋交番","addr":"柏崎市槇原町７－３０","total":20,"date":"","time":"14:00～15:00"},{"id":86,"name":"比角交番","addr":"柏崎市小倉町８－９","total":15,"date":"","time":"15:15～16:30"}];
 
 const FLOORS = ['1F','2F','3F','4F','5F','外'];
-const TYPES  = ['40型2灯式','40型1灯式','20型2灯式','20型1灯式','ダウンライト','FPL','新規登録'];
-const FORMS  = ['逆富士','埋め込み','壁付け','壁付け反射笠付','LED済み','新規登録'];
+const TYPES  = ['40型2灯式','40型1灯式','20型2灯式','20型1灯式','15型1灯式','ダウンライト','FPL','LEDベースライト','シリカE26','シーリング','新規登録'];
+const FORMS  = ['逆富士','埋込','壁付け','反射笠付','トラフ','落下防止カバー付','ブラケット','階段用壁付け','非常灯','スクエア','人感センサー','新規登録'];
 
 const saved = {};
 let currentId = null;
@@ -280,18 +292,23 @@ function renderDetail() {
     html = `<div class="empty-state">まだ記録がありません<br>「照明を追加する」から登録してください</div>`;
   } else {
     html = `<div class="reg-table-wrap"><table class="reg-table">
-      <thead><tr><th>No</th><th>階数</th><th>室区分</th><th>種類</th><th>形式</th><th>台数</th><th>写真</th><th></th></tr></thead><tbody>`;
+      <thead><tr><th>No</th><th>階数</th><th>室区分</th><th>種類</th><th>形式</th><th>台数</th><th>備考</th><th>写真</th><th></th></tr></thead><tbody>`;
     records.forEach((r, i) => {
       const typeName = r.type === '新規登録' ? (r.typeCustom||'—') : (r.type||'—');
-      const formName = r.form === '新規登録' ? (r.formCustom||'—') : (r.form||'—');
+      const formArr = Array.isArray(r.form) ? r.form : (r.form ? [r.form] : []);
+      const formName = formArr.length ? formArr.map(f => f==='新規登録'?(r.formCustom||'新規登録'):f).join('・') : '—';
       const thumbs = (r.photos||[]).map(p =>
         `<img class="thumb" src="${p.dataUrl}" alt="写真">`
       ).join('');
       html += `<tr>
         <td>${i+1}</td><td>${r.floor||'—'}</td><td>${r.room||'—'}</td>
         <td>${typeName}</td><td>${formName}</td><td>${r.count||'—'}</td>
+        <td style="max-width:100px;white-space:normal;font-size:12px">${r.note||'—'}</td>
         <td><div class="thumb-wrap">${thumbs||'—'}</div></td>
-        <td><button onclick="deleteRecord(${i})" style="background:none;border:none;color:#c00;font-size:20px;cursor:pointer;padding:0 4px;">×</button></td>
+        <td style="white-space:nowrap">
+          <button class="edit-btn" onclick="editRecord(${i})">編集</button>
+          <button onclick="deleteRecord(${i})" style="background:none;border:none;color:#c00;font-size:20px;cursor:pointer;padding:0 4px;margin-left:4px">×</button>
+        </td>
       </tr>`;
     });
     html += `</tbody></table></div>`;
@@ -305,29 +322,66 @@ function deleteRecord(i) {
   renderDetail(); renderList();
 }
 
+let editingRecordIdx = -1;
+
 /* ===== 照明入力フォーム ===== */
 function goForm() {
+  editingRecordIdx = -1;
   const f = FACILITIES.find(x => x.id === currentId);
-  document.getElementById('f-title').textContent = f.name;
+  document.getElementById('f-title').textContent = f.name + '　新規追加';
+  curFloor = '';
   lightings = [newLC()];
-  document.getElementById('inp-note').value = '';
+  renderFloorChips();
+  document.getElementById('inp-room').value = '';
   renderLCs();
   show('screen-form');
 }
 
+function editRecord(i) {
+  editingRecordIdx = i;
+  const r = saved[currentId].records[i];
+  const f = FACILITIES.find(x => x.id === currentId);
+  document.getElementById('f-title').textContent = f.name + '　編集';
+  curFloor = r.floor || '';
+  lightings = [JSON.parse(JSON.stringify(r))];
+  renderFloorChips();
+  document.getElementById('inp-room').value = r.room || '';
+  renderLCs();
+  show('screen-form');
+}
+
+let curFloor = '';
+
+function setFloor(val) {
+  curFloor = val;
+  renderFloorChips();
+}
+
+function renderFloorChips() {
+  const el = document.getElementById('floor-chips');
+  if (!el) return;
+  el.innerHTML = FLOORS.map(f =>
+    `<span class="chip${curFloor===f?' sel':''}" onclick="setFloor('${f}')">${f}</span>`
+  ).join('');
+}
+
 function newLC() {
-  return { floor:'', room:'', type:'', typeCustom:'', form:'', formCustom:'',
-    dia:'', width:'', depth:'', phi:'', count:'', hours:'', photos:[] };
+  return { floor:'', room:'', type:'', typeCustom:'', form:[], formCustom:'',
+    dia:'', width:'', depth:'', phi:'', count:'', hours:'', note:'', photos:[] };
 }
 function addLC() { lightings.push(newLC()); renderLCs(); }
 function delLC(i) { if (lightings.length > 1) { lightings.splice(i,1); renderLCs(); } }
 function setChip(i, key, val) {
-  lightings[i][key] = val;
-  const wrap = document.getElementById('lc-wrap-'+i);
-  const scrollLeft = wrap ? wrap.scrollLeft : 0;
+  if (key === 'form') {
+    // 形式は複数選択
+    if (!Array.isArray(lightings[i].form)) lightings[i].form = lightings[i].form ? [lightings[i].form] : [];
+    const idx = lightings[i].form.indexOf(val);
+    if (idx >= 0) lightings[i].form.splice(idx, 1);
+    else lightings[i].form.push(val);
+  } else {
+    lightings[i][key] = val;
+  }
   renderLCs();
-  const wrapAfter = document.getElementById('lc-wrap-'+i);
-  if (wrapAfter) wrapAfter.scrollLeft = scrollLeft;
 }
 function setF(i, key, val) { lightings[i][key] = val; }
 
@@ -369,46 +423,42 @@ function renderLCs() {
       </div>`
     ).join('');
     const canAdd = (l.photos||[]).length < 3;
+    const selected = Array.isArray(l.form) ? l.form : (l.form ? [l.form] : []);
     return `
 <div class="lc">
   <div class="lc-head">
     <span class="lc-head-title">照明 ${i+1}</span>
     ${lightings.length > 1 ? `<button class="lc-del" onclick="delLC(${i})">× 削除</button>` : ''}
   </div>
-  <div class="lc-table-wrap" id="lc-wrap-${i}">
-    <table class="lc-table">
-      <thead><tr>
-        <th>階数</th><th>室区分</th><th>種類</th><th>形式</th>
-        <th>直径(mm)</th><th>幅(mm)</th><th>深さ(mm)</th><th>Φ数</th>
-        <th>台数</th><th>点灯(h/日)</th>
-      </tr></thead>
-      <tbody><tr>
-        <td>
-          <div class="chips" style="min-width:130px;">
-            ${FLOORS.map(f => `<span class="chip${l.floor===f?' sel':''}" onclick="setChip(${i},'floor','${f}')">${f}</span>`).join('')}
-          </div>
-        </td>
-        <td><input class="txt-inp" type="text" placeholder="例：廊下" value="${l.room||''}" oninput="setF(${i},'room',this.value)"></td>
-        <td>
-          <div class="chips" style="min-width:200px;">
-            ${TYPES.map(t => `<span class="chip${l.type===t?' sel':''}" onclick="setChip(${i},'type','${t}')">${t}</span>`).join('')}
-          </div>
-          ${l.type==='新規登録'?`<input class="custom-inp" type="text" placeholder="種類を入力" value="${l.typeCustom||''}" oninput="setF(${i},'typeCustom',this.value)">` : ''}
-        </td>
-        <td>
-          <div class="chips" style="min-width:180px;">
-            ${FORMS.map(f => `<span class="chip${l.form===f?' sel':''}" onclick="setChip(${i},'form','${f}')">${f}</span>`).join('')}
-          </div>
-          ${l.form==='新規登録'?`<input class="custom-inp" type="text" placeholder="形式を入力" value="${l.formCustom||''}" oninput="setF(${i},'formCustom',this.value)">` : ''}
-        </td>
-        <td><input class="num-inp" type="number" min="0" step="0.1" placeholder="—" value="${l.dia||''}" oninput="setF(${i},'dia',this.value)"></td>
-        <td><input class="num-inp" type="number" min="0" step="0.1" placeholder="—" value="${l.width||''}" oninput="setF(${i},'width',this.value)"></td>
-        <td><input class="num-inp" type="number" min="0" step="0.1" placeholder="—" value="${l.depth||''}" oninput="setF(${i},'depth',this.value)"></td>
-        <td><input class="num-inp" type="number" min="0" step="0.1" placeholder="—" value="${l.phi||''}" oninput="setF(${i},'phi',this.value)"></td>
-        <td><input class="num-inp" type="number" min="1" placeholder="台" value="${l.count||''}" oninput="setF(${i},'count',this.value)"></td>
-        <td><input class="num-inp" type="number" min="0" max="24" step="0.5" placeholder="h" value="${l.hours||''}" oninput="setF(${i},'hours',this.value)"></td>
-      </tr></tbody>
-    </table>
+  <div class="lc-field">
+    <div class="lc-field-label">種類</div>
+    <div class="chips">${TYPES.map(t => `<span class="chip${l.type===t?' sel':''}" onclick="setChip(${i},'type','${t}')">${t}</span>`).join('')}</div>
+    ${l.type==='新規登録'?`<input class="custom-inp" type="text" placeholder="種類を入力" value="${l.typeCustom||''}" oninput="setF(${i},'typeCustom',this.value)">` : ''}
+  </div>
+  <div class="lc-field">
+    <div class="lc-field-label">形式（複数選択可）</div>
+    <div class="chips">${FORMS.map(f => `<span class="chip${selected.includes(f)?' sel':''}" onclick="setChip(${i},'form','${f}')">${f}</span>`).join('')}</div>
+    ${selected.includes('新規登録')?`<input class="custom-inp" type="text" placeholder="形式を入力" value="${l.formCustom||''}" oninput="setF(${i},'formCustom',this.value)">` : ''}
+  </div>
+  <div class="lc-field">
+    <div class="lc-field-label">サイズ</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><div style="font-size:11px;color:var(--gray-4);margin-bottom:4px">直径(mm)</div><input class="num-inp" style="width:100%" type="number" min="0" step="0.1" placeholder="—" value="${l.dia||''}" oninput="setF(${i},'dia',this.value)"></div>
+      <div><div style="font-size:11px;color:var(--gray-4);margin-bottom:4px">幅(mm)</div><input class="num-inp" style="width:100%" type="number" min="0" step="0.1" placeholder="—" value="${l.width||''}" oninput="setF(${i},'width',this.value)"></div>
+      <div><div style="font-size:11px;color:var(--gray-4);margin-bottom:4px">深さ(mm)</div><input class="num-inp" style="width:100%" type="number" min="0" step="0.1" placeholder="—" value="${l.depth||''}" oninput="setF(${i},'depth',this.value)"></div>
+      <div><div style="font-size:11px;color:var(--gray-4);margin-bottom:4px">Φ数</div><input class="num-inp" style="width:100%" type="number" min="0" step="0.1" placeholder="—" value="${l.phi||''}" oninput="setF(${i},'phi',this.value)"></div>
+    </div>
+  </div>
+  <div class="lc-field">
+    <div class="lc-field-label">台数・点灯時間</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><div style="font-size:11px;color:var(--gray-4);margin-bottom:4px">台数</div><input class="num-inp" style="width:100%" type="number" min="1" placeholder="台" value="${l.count||''}" oninput="setF(${i},'count',this.value)"></div>
+      <div><div style="font-size:11px;color:var(--gray-4);margin-bottom:4px">点灯時間(h/日)</div><input class="num-inp" style="width:100%" type="number" min="0" max="24" step="0.5" placeholder="h" value="${l.hours||''}" oninput="setF(${i},'hours',this.value)"></div>
+    </div>
+  </div>
+  <div class="lc-field">
+    <div class="lc-field-label">備考</div>
+    <textarea class="txt-inp" style="min-width:unset;resize:none;min-height:48px" placeholder="この照明の備考" oninput="setF(${i},'note',this.value)">${l.note||''}</textarea>
   </div>
   <div class="photo-section">
     <div class="photo-label">写真（最大3枚）</div>
@@ -423,9 +473,18 @@ function renderLCs() {
 }
 
 function saveForm() {
-  const note = document.getElementById('inp-note').value;
-  lightings.forEach(l => { l.note = note; });
-  saved[currentId].records.push(...lightings.map(l => JSON.parse(JSON.stringify(l))));
+  const room = document.getElementById('inp-room').value;
+  lightings.forEach(l => {
+    l.floor = curFloor;
+    l.room = room;
+  });
+  if (editingRecordIdx >= 0) {
+    // 編集モード：既存レコードを上書き
+    saved[currentId].records.splice(editingRecordIdx, 1, ...lightings.map(l => JSON.parse(JSON.stringify(l))));
+  } else {
+    // 新規追加
+    saved[currentId].records.push(...lightings.map(l => JSON.parse(JSON.stringify(l))));
+  }
   goDetail();
 }
 
