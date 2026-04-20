@@ -220,7 +220,18 @@ const FLOORS = ['1F','2F','3F','4F','5F','外'];
 const TYPES  = ['40型2灯式','40型1灯式','20型2灯式','20型1灯式','15型1灯式','ダウンライト','FPL','LEDベースライト','シリカE26','シーリング','新規登録'];
 const FORMS  = ['逆富士','埋込','壁付け','反射笠付','トラフ','落下防止カバー付','ブラケット','階段用壁付け','非常灯','スクエア','人感センサー','新規登録'];
 
-const saved = {};
+// localStorageからデータを復元
+const STORAGE_KEY = 'lighting_survey_data';
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+function saveToDB() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch(e) {}
+}
+const saved = loadSaved();
 let currentId = null;
 let lightings = [];
 
@@ -278,6 +289,7 @@ function openDetail(id) {
 
 function selectSurveyor(name) {
   saved[currentId].surveyor = name;
+  saveToDB();
   updateSurveyorChips(name);
 }
 function updateSurveyorChips(name) {
@@ -319,6 +331,7 @@ function renderDetail() {
 function deleteRecord(i) {
   if (!confirm(`照明${i+1}を削除しますか？`)) return;
   saved[currentId].records.splice(i, 1);
+  saveToDB();
   renderDetail(); renderList();
 }
 
@@ -479,12 +492,11 @@ function saveForm() {
     l.room = room;
   });
   if (editingRecordIdx >= 0) {
-    // 編集モード：既存レコードを上書き
     saved[currentId].records.splice(editingRecordIdx, 1, ...lightings.map(l => JSON.parse(JSON.stringify(l))));
   } else {
-    // 新規追加
     saved[currentId].records.push(...lightings.map(l => JSON.parse(JSON.stringify(l))));
   }
+  saveToDB();
   goDetail();
 }
 
