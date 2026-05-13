@@ -558,9 +558,8 @@ function show(id) {
 function goList() { renderList(); show('screen-list'); }
 function goDetail() { renderDetail(); renderList(); show('screen-detail'); }
 
-/* ===== 施設ごとZIP保存 ===== */
+/* ===== 施設ごと保存 ===== */
 async function exportFacilityZip() {
-  try {
   const f = FACILITIES.find(x => x.id === currentId);
   const s = saved[currentId];
   if (!s || !s.records.length) { alert('記録がありません'); return; }
@@ -587,35 +586,31 @@ async function exportFacilityZip() {
 
   const BOM = '\uFEFF';
   const csvStr = BOM + rows.map(function(r){ return r.map(function(v){ return '"'+String(v===null||v===undefined?'':v).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+  const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+  const csvFile = new File([blob], baseName+'.csv', { type: 'text/csv;charset=utf-8;' });
 
-  const zip = new JSZip();
-  zip.file(baseName+'.csv', csvStr);
-  const photosFolder = zip.folder('photos');
-  s.records.forEach(function(r, idx) {
-    (r.photos||[]).forEach(function(p, pi) {
-      const pname = fname+'_照明'+(idx+1)+'_写真'+(pi+1)+'.'+(p.ext||'jpg');
-      photosFolder.file(pname, p.dataUrl.split(',')[1], { base64: true });
-    });
-  });
-
-  const blob = await zip.generateAsync({ type: 'blob' });
-  const zipFile = new File([blob], baseName+'.zip', { type: 'application/zip' });
-
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [zipFile] })) {
-    try { await navigator.share({ files: [zipFile], title: baseName }); return; }
-    catch(e) { if (e.name === 'AbortError') return; }
+  // iPhoneのShare Sheet
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [csvFile] })) {
+    try {
+      await navigator.share({ files: [csvFile], title: baseName, text: baseName });
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return;
+    }
   }
 
+  // PCフォールバック
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = baseName+'.zip';
+  a.download = baseName+'.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-  } catch(err) { alert('エラー: ' + err.message); }
 }
+
+
 renderList();
 </script>
 </body>
