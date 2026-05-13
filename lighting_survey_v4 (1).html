@@ -560,6 +560,7 @@ function goDetail() { renderDetail(); renderList(); show('screen-detail'); }
 
 /* ===== 施設ごとZIP保存 ===== */
 async function exportFacilityZip() {
+  try {
   const f = FACILITIES.find(x => x.id === currentId);
   const s = saved[currentId];
   if (!s || !s.records.length) { alert('記録がありません'); return; }
@@ -613,6 +614,7 @@ async function exportFacilityZip() {
   a.click();
   document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  } catch(err) { alert('エラー: ' + err.message); }
 }
 renderList();
 </script>
