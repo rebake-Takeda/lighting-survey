@@ -558,7 +558,7 @@ function show(id) {
 function goList() { renderList(); show('screen-list'); }
 function goDetail() { renderDetail(); renderList(); show('screen-detail'); }
 
-/* ===== 施設ごと保存 ===== */
+/* ===== 施設ごとZIP保存 ===== */
 async function exportFacilityZip() {
   const f = FACILITIES.find(x => x.id === currentId);
   const s = saved[currentId];
@@ -573,45 +573,47 @@ async function exportFacilityZip() {
 
   s.records.forEach(function(r, idx) {
     const typeName = r.type==='新規登録'?(r.typeCustom||'新規登録'):r.type;
-    const formName = r.form==='新規登録'?(r.formCustom||'新規登録'):r.form;
-    const photoNames = (r.photos||[]).map(function(p,pi){ return fname+'_照明'+(idx+1)+'_写真'+(pi+1)+'.'+(p.ext||'jpg'); });
-    while (photoNames.length < 3) photoNames.push('');
+    const formArr = Array.isArray(r.form) ? r.form : (r.form ? [r.form] : []);
+    const formName = formArr.map(function(ff){ return ff==='新規登録'?(r.formCustom||'新規登録'):ff; }).join('・');
     const wattVal = r.watt==='新規登録'?(r.wattCustom||''):r.watt||'';
     const diaVal = r.dia==='新規登録'?(r.diaCustom||''):r.dia||'';
     const widthVal = r.width==='新規登録'?(r.widthCustom||''):r.width||'';
     const phiVal = r.phi==='新規登録'?(r.phiCustom||''):r.phi||'';
+    const photoNames = (r.photos||[]).map(function(p,pi){ return fname+'_照明'+(idx+1)+'_写真'+(pi+1)+'.'+(p.ext||'jpg'); });
+    while (photoNames.length < 3) photoNames.push('');
     rows.push([f.id,f.name,f.addr,f.total,s.surveyor,idx+1,r.floor,r.room,typeName,r.subtype||'',formName,r.color||'',r.count||'',wattVal,r.hours||'',diaVal,widthVal,r.depth||'',phiVal].concat(photoNames).concat([r.note||'']));
   });
 
   const BOM = '\uFEFF';
   const csvStr = BOM + rows.map(function(r){ return r.map(function(v){ return '"'+String(v===null||v===undefined?'':v).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
-  const csvFile = new File([csvStr], baseName+'.csv', { type: 'text/csv' });
 
-  const photoFiles = [];
+  const zip = new JSZip();
+  zip.file(baseName+'.csv', csvStr);
+  const photosFolder = zip.folder('photos');
   s.records.forEach(function(r, idx) {
     (r.photos||[]).forEach(function(p, pi) {
-      const byteStr = atob(p.dataUrl.split(',')[1]);
-      const arr = new Uint8Array(byteStr.length);
-      for (let i = 0; i < byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
       const pname = fname+'_照明'+(idx+1)+'_写真'+(pi+1)+'.'+(p.ext||'jpg');
-      photoFiles.push(new File([arr], pname, { type: 'image/jpeg' }));
+      photosFolder.file(pname, p.dataUrl.split(',')[1], { base64: true });
     });
   });
 
-  const allFiles = [csvFile].concat(photoFiles);
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const zipFile = new File([blob], baseName+'.zip', { type: 'application/zip' });
 
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: allFiles })) {
-    try { await navigator.share({ files: allFiles, title: baseName }); return; }
-    catch(e) { if (e.name === 'AbortError') return; }
-  }
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [csvFile] })) {
-    try { await navigator.share({ files: [csvFile], title: baseName }); return; }
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [zipFile] })) {
+    try { await navigator.share({ files: [zipFile], title: baseName }); return; }
     catch(e) { if (e.name === 'AbortError') return; }
   }
 
-  alert('CSVを保存できませんでした。ブラウザの設定を確認してください。');
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = baseName+'.zip';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 }
-
 renderList();
 </script>
 </body>
